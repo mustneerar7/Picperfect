@@ -1,3 +1,5 @@
+import Slider from '@react-native-community/slider';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,7 +9,36 @@ import {
   Pressable,
 } from 'react-native';
 
+import useLightingControls from './src/hooks/useLightingControls';
+
 const App = (): React.JSX.Element => {
+
+  // state to hold the response from the native module
+  const [responseFromNative, setResponseFromNative] = useState(
+    'Results from native module will appear here',
+  );
+
+  // access Lighting Controls from the custom hook
+  const {LightingControls} = useLightingControls();
+
+  // sends the value to the native module.
+  // The native module will then change the value and return the response.
+  const getNativeResponse = (value: number) => {
+    LightingControls.changeExposure(
+      value,
+      (error: string, response: string) => {
+        if (error) {
+          console.error(error);
+          return;
+        } else {
+          setResponseFromNative(response);
+          console.log(response);
+        }
+      },
+    );
+  }
+
+  // Presentational component
   return (
     <View style={Styles.container}>
       <Image
@@ -18,6 +49,16 @@ const App = (): React.JSX.Element => {
       <Text style={Styles.body}>
         Blend colors, illuminate scenes, recompose in post and much more
       </Text>
+      <Slider
+        style={{width: '86%', alignSelf: 'center', margin: 16}}
+        minimumValue={0}
+        maximumValue={1}
+        minimumTrackTintColor="#7E84F7"
+        maximumTrackTintColor="#7E84F7"
+        thumbTintColor="#7E84F7"
+        onValueChange={value => getNativeResponse(value)}
+      />
+      <Text style={Styles.body}>{responseFromNative}</Text>
       <Pressable style={Styles.buttonContainer}>
         <Text style={Styles.buttonText}>Get Started</Text>
       </Pressable>
@@ -36,7 +77,7 @@ const Styles = StyleSheet.create({
     alignItems: 'center',
     resizeMode: 'cover',
     width: '100%',
-    height: '60%',
+    height: '50%',
     marginBottom: 32,
   },
   buttonContainer: {
