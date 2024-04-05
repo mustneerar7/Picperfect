@@ -7,4 +7,4 @@ const useLightingControls = () => {
   return {LightingControls};
 };
 
-export default useLightingControls;
+export {useLightingControls};
