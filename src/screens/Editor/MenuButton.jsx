@@ -1,0 +1,31 @@
+import {Text, TouchableOpacity, View} from 'react-native';
+import {IconSet} from '../../hooks/useCustomIcons';
+
+import {styles} from '../../styles';
+
+const MenuButton = ({onClick, icon, title}) => (
+  <TouchableOpacity
+    style={{
+      height: 100,
+    }}>
+    <View
+      style={[
+        {
+          margin: 8,
+          width: 64,
+          height: 64,
+          borderRadius: 100,
+          backgroundColor: '#2b2b2b',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+      ]}
+      onPress={onClick}>
+      <IconSet name={icon} size={24} color="#FFFFFF" />
+    </View>
+    <Text style={[styles.body, {fontSize: 12}]}>{title}</Text>
+  </TouchableOpacity>
+);
+
+export {MenuButton};

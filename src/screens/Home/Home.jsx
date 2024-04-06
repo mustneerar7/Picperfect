@@ -24,19 +24,21 @@ const Home = ({navigation}) => {
       includeBase64: true,
     };
 
-    await launchImageLibrary(options).then(result => {
-    setResult(result);
-    }).catch(err => {
-      console.log('Image selection error: ', err);
-    });
+    await launchImageLibrary(options)
+      .then(result => {
+        setResult(result);
+      })
+      .catch(err => {
+        console.log('Image selection error: ', err);
+      });
   };
 
   useEffect(() => {
     // If the result is null, return.
     if (!result) return;
-    
+
     // If the user cancels the image selection, return.
-    if(result.didCancel) return;
+    if (result.didCancel) return;
 
     // Navigate to the Editor screen with the selected image.
     // pass the image uri and path as route params.
@@ -44,12 +46,11 @@ const Home = ({navigation}) => {
       uri: result.assets['0'].uri,
       imagePath: result.assets['0'].originalPath,
     });
-
   }, [result]);
 
   // Presentation
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {justifyContent: 'center'}]}>
       <View
         style={{
           alignItems: 'center',

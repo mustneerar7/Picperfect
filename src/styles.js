@@ -4,8 +4,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 16,
   },
 
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#333333',
     color: '#ffffff',
-    width: '90%',
+    width: '94%',
     height: 44,
     padding: 12,
     marginBottom: 8,

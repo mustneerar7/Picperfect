@@ -18,6 +18,12 @@ const glyphMap = {
   'rocket': '',
   'eye': '',
   'photo': '',
+  'export': '',
+  'brightness': '',
+  'contrast': '',
+  'highlights': '',
+  'shadows': '',
+  'midtones': '',
 };
 
 const IconSet = createIconSet(glyphMap, 'FluentSystemIcons-Regular');
