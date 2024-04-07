@@ -30,7 +30,7 @@ class LightingControls(
     private lateinit var openCVHelper: OpenCVHelper
 
     // Store the exposure value for later use.
-    private var exposureValue: Float? = null
+    private var exposureValue: Double? = null
 
     // Return the module name for React Native.
     override fun getName() = "LightingControls"
@@ -39,9 +39,9 @@ class LightingControls(
     * Native method to change exposure of an image.
     * */
     @ReactMethod
-    fun changeExposure(alpha: Float, callback: Callback) {
+    fun changeExposure(beta: Double, callback: Callback) {
         currentImage?.let { image ->
-            Log.d("Lighting Controls", "Alpha value received: $alpha")
+            Log.d("Lighting Controls", "Alpha value received: $beta")
 
             // Initialize OpenCVHelper if not already initialized
             if (!::openCVHelper.isInitialized) {
@@ -50,11 +50,11 @@ class LightingControls(
 
             // Perform exposure adjustment in parallel using Kotlin coroutines
             CoroutineScope(Dispatchers.Default).launch {
-                val changedBitmap = openCVHelper.changeExposureAsync(image, alpha)
+                val changedBitmap = openCVHelper.adjustBrightnessAsync(image, beta)
                 val base64String = bitmapToBase64(changedBitmap)
 
                 // Preserve exposure value
-                exposureValue = alpha
+                exposureValue = beta
 
                 withContext(Dispatchers.Main) {
                     callback.invoke(base64String)
@@ -66,9 +66,9 @@ class LightingControls(
     /*
     * Suspend method to execute changeExposure on a different coroutine.
     * */
-    private suspend fun OpenCVHelper.changeExposureAsync(bitmap: Bitmap, alpha: Float): Bitmap {
+    private suspend fun OpenCVHelper.adjustBrightnessAsync(bitmap: Bitmap, beta: Double): Bitmap {
         return withContext(Dispatchers.Default) {
-            changeExposure(bitmap, alpha)
+            adjustBrightness(bitmap, beta)
         }
     }
 
@@ -100,6 +100,7 @@ class LightingControls(
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun readImage(uri: String, callback: Callback) {
         val image = BitmapFactory.decodeFile(uri)
+
         currentImage = image
 
         if (currentImage == null) {

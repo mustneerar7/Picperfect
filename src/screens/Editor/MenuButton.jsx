@@ -12,8 +12,8 @@ const MenuButton = ({onClick, icon, title}) => (
       style={[
         {
           margin: 8,
-          width: 64,
-          height: 64,
+          width: 56,
+          height: 56,
           borderRadius: 100,
           backgroundColor: '#2b2b2b',
           flexDirection: 'column',

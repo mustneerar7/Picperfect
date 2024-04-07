@@ -21,6 +21,7 @@ const Editor = ({navigation, route}) => {
   // STATES
   const [image, setImage] = useState(uri);
   const [original, setOriginal] = useState(imagePath);
+  const [exposure, setExposure] = useState(0.0);
 
   // Read the image from the gallery on mount
   useEffect(() => {
@@ -34,6 +35,7 @@ const Editor = ({navigation, route}) => {
   const handleExposureChange = value => {
     // keep the value to 2 decimal places
     value = Math.round(value * 100) / 100;
+    setExposure(value);
 
     console.log(value);
     LightingControls.changeExposure(value, base64String => {
@@ -92,17 +94,17 @@ const Editor = ({navigation, route}) => {
       <MenuStrip />
 
       {/* Exposure Slider. Would be moved to sub menu. */}
-      <Text style={[styles.body, {marginTop: 24}]}>Exposure</Text>
       <Slider
-        style={{width: '80%', height: 40}}
-        minimumValue={0}
-        maximumValue={3.0}
-        defaultValue={1.0}
+        style={{width: '80%', height: 40, marginTop: 16, marginBottom: 16}}
+        minimumValue={2.0}
+        maximumValue={0.2}
         thumbTintColor="#7E84F7"
         minimumTrackTintColor="#7E84F7"
         maximumTrackTintColor="#FFFFFF"
         // when drag is released
         onSlidingComplete={e => handleExposureChange(e)}
+        // initial value
+        value={0.0}
       />
     </View>
   );

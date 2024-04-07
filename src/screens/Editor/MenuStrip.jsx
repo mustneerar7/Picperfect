@@ -9,7 +9,7 @@ const MenuStrip = () => {
       showsHorizontalScrollIndicator={false}
       style={{
         flexDirection: 'row',
-        width: '100%',
+        width: '90%',
         marginTop: 16,
         maxHeight: 120,
         paddingTop: 16,
