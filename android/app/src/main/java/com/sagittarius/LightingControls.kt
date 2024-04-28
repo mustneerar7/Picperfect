@@ -29,17 +29,34 @@ class LightingControls(
     // OpenCV Helper instance.
     private lateinit var openCVHelper: OpenCVHelper
 
-    // Store the exposure value for later use.
-    private var exposureValue: Double? = null
+    // Store current control name
+    private var currentControl: LightingProperty? = null
+    private enum class LightingProperty {
+        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT
+    }
+
+    // Hashtable to store the controls and their values
+    private val controlValues = mutableMapOf<String, Double>()
 
     // Return the module name for React Native.
     override fun getName() = "LightingControls"
+
+
+    // Method which restores the values in the controlValues hashtable when a control is changed / selected
+    fun restoreControlValues(control: String) {
+        controlValues[control]?.let { value ->
+            when (control) {
+                "exposure" -> changeExposure(value) {}
+            }
+        }
+    }
 
     /*
     * Native method to change exposure of an image.
     * */
     @ReactMethod
     fun changeExposure(beta: Double, callback: Callback) {
+
         currentImage?.let { image ->
             Log.d("Lighting Controls", "Alpha value received: $beta")
 
@@ -53,8 +70,16 @@ class LightingControls(
                 val changedBitmap = openCVHelper.adjustBrightnessAsync(image, beta)
                 val base64String = bitmapToBase64(changedBitmap)
 
-                // Preserve exposure value
-                exposureValue = beta
+                // save the current control value
+                controlValues["exposure"] = beta
+
+                // if current control is exposure, donot update the original image
+                if (currentControl != LightingProperty.EXPOSURE) {
+                    currentImage = changedBitmap
+                }
+
+                // Store the current control name
+                currentControl = LightingProperty.EXPOSURE
 
                 withContext(Dispatchers.Main) {
                     callback.invoke(base64String)

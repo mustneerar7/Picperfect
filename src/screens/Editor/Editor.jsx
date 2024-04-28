@@ -1,11 +1,11 @@
 import Slider from '@react-native-community/slider';
-import {useEffect, useLayoutEffect, useState} from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
-import {IconSet} from '../../hooks/useCustomIcons';
-import {useLightingControls} from '../../hooks/useLightingControls';
-import {styles} from '../../styles';
-import {MenuStrip} from './MenuStrip';
+import { IconSet } from '../../hooks/useCustomIcons';
+import { useLightingControls } from '../../hooks/useLightingControls';
+import { styles } from '../../styles';
+import { MenuStrip } from './MenuStrip';
 
 /**
  * Renders the Editor Screen component.
@@ -21,7 +21,6 @@ const Editor = ({navigation, route}) => {
   // STATES
   const [image, setImage] = useState(uri);
   const [original, setOriginal] = useState(imagePath);
-  const [exposure, setExposure] = useState(0.0);
 
   // Read the image from the gallery on mount
   useEffect(() => {
@@ -35,7 +34,6 @@ const Editor = ({navigation, route}) => {
   const handleExposureChange = value => {
     // keep the value to 2 decimal places
     value = Math.round(value * 100) / 100;
-    setExposure(value);
 
     console.log(value);
     LightingControls.changeExposure(value, base64String => {
@@ -96,18 +94,17 @@ const Editor = ({navigation, route}) => {
       {/* Exposure Slider. Would be moved to sub menu. */}
       <Slider
         style={{width: '80%', height: 40, marginTop: 16, marginBottom: 16}}
-        minimumValue={2.0}
-        maximumValue={0.2}
+        minimumValue={0.5}
+        maximumValue={1.5}
         thumbTintColor="#7E84F7"
         minimumTrackTintColor="#7E84F7"
         maximumTrackTintColor="#FFFFFF"
         // when drag is released
         onSlidingComplete={e => handleExposureChange(e)}
-        // initial value
-        value={0.0}
       />
     </View>
   );
 };
 
-export {Editor};
+export { Editor };
+
