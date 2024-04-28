@@ -32,6 +32,14 @@ class LightingControls(
     // Store the exposure value for later use.
     private var exposureValue: Float? = null
 
+    private var midtoneShiftValue: Float? = null
+
+    private var shadowsValue: Float? = null
+
+    private var highlightShiftValue: Float? = null
+
+
+
     // Return the module name for React Native.
     override fun getName() = "LightingControls"
 
@@ -111,4 +119,113 @@ class LightingControls(
             callback.invoke("Image read successfully")
         }
     }
+
+    /* change shadows */
+
+
+    @ReactMethod
+    fun changeShadows(alpha: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Alpha value received: $alpha")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform shadows adjustment in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.changeShadowsAsync(image, alpha)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve shadows value
+                shadowsValue = alpha
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    private suspend fun OpenCVHelper.changeShadowsAsync(bitmap: Bitmap, alpha: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            changeShadows(bitmap, alpha)
+        }
+    }
+
+// Midtones
+
+    @ReactMethod
+    fun changeMidtones(midtoneShift: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Midtone shift value received: $midtoneShift")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform midtone adjustment in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.changeMidtonesAsync(image, midtoneShift)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve midtone shift value
+                midtoneShiftValue = midtoneShift
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    /*
+    * Suspend method to execute changeMidtones on a different coroutine.
+    * */
+    private suspend fun OpenCVHelper.changeMidtonesAsync(bitmap: Bitmap, midtoneShift: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            changeMidtones(bitmap, midtoneShift)
+        }
+    }
+
+//     Highlights
+
+    @ReactMethod
+    fun changeHighlights(highlightShift: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Highlight shift value received: $highlightShift")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform highlight adjustment in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.changeHighlightsAsync(image, highlightShift)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve highlight shift value
+                highlightShiftValue = highlightShift
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    /*
+    * Suspend method to execute changeHighlights on a different coroutine.
+    * */
+    private suspend fun OpenCVHelper.changeHighlightsAsync(bitmap: Bitmap, highlightShift: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            changeHighlights(bitmap, highlightShift)
+        }
+    }
+
+
+
 }

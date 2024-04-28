@@ -1,6 +1,6 @@
 import Slider from '@react-native-community/slider';
 import {useEffect, useLayoutEffect, useState} from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import {Image, Text, TouchableOpacity, View,ScrollView} from 'react-native';
 
 import {IconSet} from '../../hooks/useCustomIcons';
 import {useLightingControls} from '../../hooks/useLightingControls';
@@ -13,14 +13,16 @@ import {MenuStrip} from './MenuStrip';
  * @param {object} route - To access passed properties.
  * @returns {JSX.Element} The rendered Home screen component.
  */
-const Editor = ({navigation, route}) => {
+
+const Editor = ({ navigation, route }) => {
   // HOOKS
-  const {uri, imagePath} = route.params;
-  const {LightingControls} = useLightingControls();
+  const { uri, imagePath } = route.params;
+  const { LightingControls } = useLightingControls();
 
   // STATES
   const [image, setImage] = useState(uri);
   const [original, setOriginal] = useState(imagePath);
+  const [mode, setMode] = useState('Exposure');
 
   // Read the image from the gallery on mount
   useEffect(() => {
@@ -32,26 +34,54 @@ const Editor = ({navigation, route}) => {
 
   // Handle exposure change
   const handleExposureChange = value => {
-    // keep the value to 2 decimal places
+    // Keep the value to 2 decimal places
     value = Math.round(value * 100) / 100;
-
     console.log(value);
     LightingControls.changeExposure(value, base64String => {
       setImage(`data:image/png;base64,${base64String}`);
     });
   };
 
-  // show header using useLayoutEffect
+  // Handle shadow change
+  const handleShadowChange = value => {
+    // Keep the value to 2 decimal places
+    value = Math.round(value * 100) / 100;
+    console.log(value);
+    LightingControls.changeShadows(value, base64String => {
+      setImage(`data:image/png;base64,${base64String}`);
+    });
+  };
+
+  // Handle Mid Tone Changes
+
+  const handleMidToneChange = value => {
+    // Keep the value to 2 decimal places
+    value = Math.round(value * 100) / 100;
+    console.log(value);
+    LightingControls.changeMidtones(value, base64String => {
+      setImage(`data:image/png;base64,${base64String}`);
+    });
+  };
+
+  // Handle Highlight Changes
+  const handleHighlightChange = value => {
+    // Keep the value to 2 decimal places
+    value = Math.round(value * 100) / 100;
+    console.log(value);
+    LightingControls.changeHighlights(value, base64String => {
+      setImage(`data:image/png;base64,${base64String}`);
+    });
+  };
+  // Show header using useLayoutEffect
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: 'Edit',
       headerShown: true,
-      // change background color of header
+      // Change background color of header
       headerStyle: {
         backgroundColor: '#000000',
       },
       headerTintColor: '#FFFFFF',
-
       headerRight: () => (
         <TouchableOpacity
           style={[
@@ -77,35 +107,51 @@ const Editor = ({navigation, route}) => {
 
   // Presentation
   return (
-    <View style={[styles.container, {paddingLeft: 0, paddingRight: 0}]}>
+    <View style={[styles.container, { paddingLeft: 0, paddingRight: 0 }]}>
+      {/* Image display */}
       {image && (
         <Image
-          source={{uri: image}}
-          style={{width: '90%', height: 500, padding: 8}}
+          source={{ uri: image }}
+          style={{ width: '90%', height: 500, padding: 8 }}
           cache="only-if-cached"
           resizeMode="contain"
           fadeDuration={0}
         />
       )}
 
-      {/* The menubar at the bottom showing controls. */}
-      <MenuStrip />
+      {/* Menu strip */}
+      <MenuStrip setMode={setMode} />
 
-      {/* Exposure Slider. Would be moved to sub menu. */}
-      <Text style={[styles.body, {marginTop: 24}]}>Exposure</Text>
+      {/* Slider for exposure or shadows */}
+      <Text style={[styles.body, { marginTop: 24 }]}>{mode}</Text>
       <Slider
-        style={{width: '80%', height: 40}}
-        minimumValue={0}
-        maximumValue={3.0}
-        defaultValue={1.0}
+        style={{ width: '80%', height: 24 }}
+        minimumValue={0.0}
+        maximumValue={0.15}
+        defaultValue={0.05}
         thumbTintColor="#7E84F7"
         minimumTrackTintColor="#7E84F7"
         maximumTrackTintColor="#FFFFFF"
-        // when drag is released
-        onSlidingComplete={e => handleExposureChange(e)}
+        // onSlidingComplete={mode === 'Exposure' ? handleExposureChange : handleMidToneChange}
+        onSlidingComplete={
+          mode === 'Exposure' 
+            ? handleExposureChange 
+            : mode === 'Mid Tones' 
+              ? handleMidToneChange
+              : mode === 'Shadows' 
+                ? handleShadowChange
+              : mode === 'Highlights'
+                ? handleHighlightChange  
+              : undefined
+        }
       />
     </View>
   );
 };
 
-export {Editor};
+export { Editor };
+
+
+
+
+
