@@ -13,6 +13,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.set
+import kotlin.collections.mutableMapOf
 
 /*
 * Native module class to control lighting properties in an image.
@@ -32,7 +36,7 @@ class LightingControls(
     // Store current control name
     private var currentControl: LightingProperty? = null
     private enum class LightingProperty {
-        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT
+        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT, MIDTONES
     }
 
     // Hashtable to store the controls and their values
@@ -46,7 +50,11 @@ class LightingControls(
     fun restoreControlValues(control: String) {
         controlValues[control]?.let { value ->
             when (control) {
-                "exposure" -> changeExposure(value) {}
+                "exposure" -> changeExposure(value) {},
+                "contrast" -> changeContrast(value.toFloat()) {},
+                "shadows" -> changeShadows(value.toFloat()) {},
+                "midtone" -> changeMidtones(value.toFloat()) {},
+                "highlight" -> changeHighlights(value.toFloat()) {}
             }
         }
     }
@@ -137,4 +145,137 @@ class LightingControls(
             callback.invoke("Image read successfully")
         }
     }
+
+    /* change shadows */
+
+
+    @ReactMethod
+    fun changeShadows(alpha: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Alpha value received: $alpha")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform shadows adjustment in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.changeShadowsAsync(image, alpha)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve shadows value
+                controlValues["shadows"] = alpha.toDouble()
+
+                // if current control is shadows, donot update the original image
+                if (currentControl != LightingProperty.SHADOW) {
+                    currentImage = changedBitmap
+                }
+
+                // Store the current control name
+                currentControl = LightingProperty.SHADOW
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    private suspend fun OpenCVHelper.changeShadowsAsync(bitmap: Bitmap, alpha: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            changeShadows(bitmap, alpha)
+        }
+    }
+
+// Midtones
+
+    @ReactMethod
+    fun changeMidtones(midtoneShift: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Midtone shift value received: $midtoneShift")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform midtone adjustment in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.changeMidtonesAsync(image, midtoneShift)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve midtone shift value
+                controlValues["midtone"] = midtoneShift.toDouble()
+
+                // if current control is midtones, donot update the original image
+                if (currentControl != LightingProperty.MIDTONES) {
+                    currentImage = changedBitmap
+                }
+
+                // Store the current control name
+                currentControl = LightingProperty.MIDTONES
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    /*
+    * Suspend method to execute changeMidtones on a different coroutine.
+    * */
+    private suspend fun OpenCVHelper.changeMidtonesAsync(bitmap: Bitmap, midtoneShift: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            changeMidtones(bitmap, midtoneShift)
+        }
+    }
+
+//     Highlights
+
+    @ReactMethod
+    fun changeHighlights(highlightShift: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Highlight shift value received: $highlightShift")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform highlight adjustment in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.changeHighlightsAsync(image, highlightShift)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve highlight shift value
+                controlValues["highlight"] = highlightShift.toDouble()
+
+                // if current control is highlight, donot update the original image
+                if (currentControl != LightingProperty.HIGHLIGHT) {
+                    currentImage = changedBitmap
+                }
+
+                // Store the current control name
+                currentControl = LightingProperty.HIGHLIGHT
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    /*
+    * Suspend method to execute changeHighlights on a different coroutine.
+    * */
+    private suspend fun OpenCVHelper.changeHighlightsAsync(bitmap: Bitmap, highlightShift: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            changeHighlights(bitmap, highlightShift)
+        }
+    }
+
+
+
 }

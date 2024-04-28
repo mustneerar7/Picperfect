@@ -1,8 +1,7 @@
 import { ScrollView } from 'react-native';
 import { MenuButton } from './MenuButton';
 
-const MenuStrip = () => {
-
+const MenuStrip = ({ setMode }) => {
   return (
     <ScrollView
       horizontal
@@ -14,14 +13,12 @@ const MenuStrip = () => {
         maxHeight: 120,
         paddingTop: 16,
       }}>
-      <MenuButton icon="brightness" onClick={() => {}} title={'Exposure'} />
-      <MenuButton icon="contrast" onClick={() => {}} title={'Contrast'} />
-      <MenuButton icon="highlights" onClick={() => {}} title={'Highlights'} />
-      <MenuButton icon="shadows" onClick={() => {}} title={'Shadows'} />
-      <MenuButton icon="midtones" onClick={() => {}} title={'Midtones'} />
+      <MenuButton icon="brightness" onClick={() => { console.log('Exposure clicked'); setMode('Exposure'); }} title={'Exposure'} />
+      <MenuButton icon="midtones" onClick={() => { console.log('Mid Tones clicked'); setMode('Mid Tones'); }} title={'Mid Tones'} />
+      <MenuButton icon="shadows" onClick={() => { console.log('Shadows clicked'); setMode('Shadows'); }} title={'Shadows'} />
+      <MenuButton icon="highlights" onClick={() => { console.log('Highlights clicked'); setMode('Highlights'); }} title={'Highlights'} />
     </ScrollView>
   );
 };
 
 export { MenuStrip };
-

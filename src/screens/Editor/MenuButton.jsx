@@ -7,7 +7,8 @@ const MenuButton = ({onClick, icon, title}) => (
   <TouchableOpacity
     style={{
       height: 100,
-    }}>
+    }}
+    onPress={onClick}>
     <View
       style={[
         {
@@ -20,8 +21,7 @@ const MenuButton = ({onClick, icon, title}) => (
           alignItems: 'center',
           justifyContent: 'center',
         },
-      ]}
-      onPress={onClick}>
+      ]}>
       <IconSet name={icon} size={24} color="#FFFFFF" />
     </View>
     <Text style={[styles.body, {fontSize: 12}]}>{title}</Text>
