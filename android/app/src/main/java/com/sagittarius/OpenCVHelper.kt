@@ -1,4 +1,6 @@
 package com.sagittarius
+import org.opencv.core.MatOfDouble
+import org.opencv.core.Size
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -9,7 +11,7 @@ import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.Scalar
-
+import org.opencv.imgproc.Imgproc
 /* Helper class to perform image processing using OpenCV. */
 class OpenCVHelper {
 
@@ -43,36 +45,59 @@ class OpenCVHelper {
 
             resultBitmap
         }
+suspend fun adjustContrastWithHistogramEqualization(bitmap: Bitmap, contrastFactor: Double): Bitmap =
+    withContext(Dispatchers.Default) {
+        // Convert the input bitmap to a Mat object
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+
+        // Apply histogram equalization
+        Imgproc.cvtColor(mat, mat, Imgproc.COLOR_BGR2GRAY)
+        Imgproc.equalizeHist(mat, mat)
+
+        // Convert the Mat object back to a bitmap
+        val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(mat, resultBitmap)
+
+        // Release the Mat to free up memory
+        mat.release()
+
+        Log.d("Histogram Equalization", "Contrast adjusted with histogram equalization")
+
+        resultBitmap
+    }
+
+    suspend fun sharpenImage(bitmap: Bitmap, strength: Double): Bitmap =
+    withContext(Dispatchers.Default) {
+        // Convert the input bitmap to a Mat object
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
 
 
-    /* Adjust the contrast of an image using OpenCV. */
-    suspend fun adjustContrast(bitmap: Bitmap, alpha: Float): Bitmap =
-        withContext(Dispatchers.Default) {
 
-            // Convert the input bitmap to a Mat object
-            val mat = Mat()
-            Utils.bitmapToMat(bitmap, mat)
+        // Apply unsharp masking or sharpening filter
+        val blurredMat = Mat()
+        Imgproc.GaussianBlur(mat, blurredMat, Size(0.0, 0.0), 2.0)
 
-            // Convert the Mat object to a floating-point Mat object
-            val floatMat = Mat()
-            mat.convertTo(floatMat, CvType.CV_32F, 1.0 / 255.0)
+        val sharpenedMat = Mat()
+        Core.addWeighted(mat, 1.5 + strength, blurredMat, -0.5 - strength, 0.0, sharpenedMat)
 
-            // Apply contrast adjustment
-            Core.multiply(floatMat, Scalar.all(alpha.toDouble()), floatMat)
+        // Convert the Mat object back to a bitmap
+        val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(sharpenedMat, resultBitmap)
 
-            // Convert the floating-point Mat object back to a Mat object of type CV_8U
-            floatMat.convertTo(mat, CvType.CV_8U)
+        // Release the Mats to free up memory
+        mat.release()
+        blurredMat.release()
+        sharpenedMat.release()
 
-            // Convert the Mat object back to a bitmap
-            val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-            Utils.matToBitmap(mat, resultBitmap)
+        Log.d("Image Sharpening", "Image sharpened with strength: $strength")
 
-            // Release the Mats to free up memory
-            mat.release()
-            floatMat.release()
+        resultBitmap
+    }
 
-            Log.d("Contrast", "Adjusted")
 
-            resultBitmap
-        }
+
+
 }
+

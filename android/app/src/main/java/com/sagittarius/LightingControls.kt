@@ -1,4 +1,5 @@
 package com.sagittarius
+import com.sagittarius.OpenCVHelper
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-
+import org.opencv.imgproc.Imgproc
 /*
 * Native module class to control lighting properties in an image.
 * Applies exposure, contrast, shadow, and highlight adjustments.
@@ -62,6 +63,61 @@ class LightingControls(
             }
         } ?: Log.e("Lighting Controls", "Current image is null")
     }
+// In the LightingControls class
+
+@ReactMethod
+fun changeContrast(contrastFactor: Double, callback: Callback) {
+    currentImage?.let { image ->
+        Log.d("Lighting Controls", "Contrast factor received: $contrastFactor")
+
+        // Initialize OpenCVHelper if not already initialized
+        if (!::openCVHelper.isInitialized) {
+            openCVHelper = OpenCVHelper()
+        }
+
+        // Perform contrast adjustment with histogram equalization in parallel using Kotlin coroutines
+        CoroutineScope(Dispatchers.Default).launch {
+            val changedBitmap = openCVHelper.adjustContrastWithHistogramEqualizationAsync(image, contrastFactor)
+            val base64String = bitmapToBase64(changedBitmap)
+
+            withContext(Dispatchers.Main) {
+                callback.invoke(base64String)
+            }
+        }
+    } ?: Log.e("Lighting Controls", "Current image is null")
+}
+@ReactMethod
+fun changeSharpness(strength: Double, callback: Callback) {
+    currentImage?.let { image ->
+        Log.d("Lighting Controls", "Sharpness strength received: $strength")
+
+        // Initialize OpenCVHelper if not already initialized
+        if (!::openCVHelper.isInitialized) {
+            openCVHelper = OpenCVHelper()
+        }
+
+        // Perform sharpness adjustment in parallel using Kotlin coroutines
+        CoroutineScope(Dispatchers.Default).launch {
+            val sharpenedBitmap = openCVHelper.sharpenImage(image, strength)
+            val base64String = bitmapToBase64(sharpenedBitmap)
+
+            withContext(Dispatchers.Main) {
+                callback.invoke(base64String)
+            }
+        }
+    } ?: Log.e("Lighting Controls", "Current image is null")
+}
+
+/*
+* Suspend method to execute changeSharpness on a different coroutine.
+* */
+private suspend fun OpenCVHelper.sharpenImageAsync(bitmap: Bitmap, strength: Double): Bitmap {
+    return withContext(Dispatchers.Default) {
+        sharpenImage(bitmap, strength)
+    }
+}
+
+
 
     /*
     * Suspend method to execute changeExposure on a different coroutine.
@@ -71,6 +127,23 @@ class LightingControls(
             adjustBrightness(bitmap, beta)
         }
     }
+    private suspend fun OpenCVHelper.adjustSharpnessAsync(bitmap: Bitmap, beta: Double): Bitmap {
+        return withContext(Dispatchers.Default) {
+            adjustBrightness(bitmap, beta)
+        }
+    }
+// In the OpenCVHelper class
+
+suspend fun OpenCVHelper.adjustContrastWithHistogramEqualizationAsync(bitmap: Bitmap, contrastFactor: Double): Bitmap {
+    return withContext(Dispatchers.Default) {
+        adjustContrastWithHistogramEqualization(bitmap, contrastFactor)
+    }
+}
+
+
+
+
+
 
     /*
     * Method to convert bitmap to base64 string.
