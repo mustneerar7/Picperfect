@@ -2,6 +2,7 @@ package com.sagittarius
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Environment
 import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.Callback
@@ -13,10 +14,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.util.*
-import kotlin.collections.HashMap
+import java.io.File
+import java.util.UUID
 import kotlin.collections.set
-import kotlin.collections.mutableMapOf
 
 /*
 * Native module class to control lighting properties in an image.
@@ -35,6 +35,7 @@ class LightingControls(
 
     // Store current control name
     private var currentControl: LightingProperty? = null
+
     private enum class LightingProperty {
         EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT, MIDTONES
     }
@@ -44,20 +45,6 @@ class LightingControls(
 
     // Return the module name for React Native.
     override fun getName() = "LightingControls"
-
-
-    // Method which restores the values in the controlValues hashtable when a control is changed / selected
-    fun restoreControlValues(control: String) {
-        controlValues[control]?.let { value ->
-            when (control) {
-                "exposure" -> changeExposure(value) {},
-                "contrast" -> changeContrast(value.toFloat()) {},
-                "shadows" -> changeShadows(value.toFloat()) {},
-                "midtone" -> changeMidtones(value.toFloat()) {},
-                "highlight" -> changeHighlights(value.toFloat()) {}
-            }
-        }
-    }
 
     /*
     * Native method to change exposure of an image.
@@ -226,7 +213,10 @@ class LightingControls(
     /*
     * Suspend method to execute changeMidtones on a different coroutine.
     * */
-    private suspend fun OpenCVHelper.changeMidtonesAsync(bitmap: Bitmap, midtoneShift: Float): Bitmap {
+    private suspend fun OpenCVHelper.changeMidtonesAsync(
+        bitmap: Bitmap,
+        midtoneShift: Float
+    ): Bitmap {
         return withContext(Dispatchers.Default) {
             changeMidtones(bitmap, midtoneShift)
         }
@@ -270,12 +260,54 @@ class LightingControls(
     /*
     * Suspend method to execute changeHighlights on a different coroutine.
     * */
-    private suspend fun OpenCVHelper.changeHighlightsAsync(bitmap: Bitmap, highlightShift: Float): Bitmap {
+    private suspend fun OpenCVHelper.changeHighlightsAsync(
+        bitmap: Bitmap,
+        highlightShift: Float
+    ): Bitmap {
         return withContext(Dispatchers.Default) {
             changeHighlights(bitmap, highlightShift)
         }
     }
 
 
+    // function to compress the image from react native
+    @ReactMethod
+    fun compressImage(callback: Callback) {
 
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Compressing image")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform image compression in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val compressedBitmap = openCVHelper.compressImageAsync(image)
+
+                // write the compressed image as a file to external storage
+                val file = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                    "compressed_image_${UUID.randomUUID()}.jpg"
+                )
+
+                Log.d("Location", file.absolutePath)
+
+                compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, file.outputStream())
+                callback.invoke("Image compressed")
+
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+
+    }
+
+    /*
+    * Suspend method to execute compressImage on a different coroutine.
+     */
+    private suspend fun OpenCVHelper.compressImageAsync(bitmap: Bitmap): Bitmap {
+        return withContext(Dispatchers.Default) {
+            compressImage(bitmap)
+        }
+    }
 }
