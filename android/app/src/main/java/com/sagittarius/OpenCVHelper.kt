@@ -13,6 +13,9 @@ import org.opencv.core.Scalar
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.Deferred
+import org.opencv.imgproc.Imgproc
+import kotlin.math.pow
+
 
 
 /* Helper class to perform image processing using OpenCV. */
@@ -67,8 +70,27 @@ class OpenCVHelper {
       val floatMat = Mat()
       mat.convertTo(floatMat, CvType.CV_32F, 1.0 / 255.0)
 
-      // Process the image to change shadows
-      processShadows(floatMat, alpha)
+      // Determine the number of threads to use for parallel processing
+      val numThreads = Runtime.getRuntime().availableProcessors()
+      val rowsPerThread = floatMat.rows() / numThreads
+      val jobList = mutableListOf<Deferred<Unit>>()
+
+      // Split the image into equal-sized chunks and process each chunk concurrently
+      var startY = 0
+      for (i in 0 until numThreads) {
+        val endY = if (i == numThreads - 1) floatMat.rows() else startY + rowsPerThread
+        val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, floatMat.cols()))
+
+        val job = async {
+          processChunkShadows(chunkMat, alpha)
+        }
+        jobList.add(job)
+
+        startY = endY
+      }
+
+      // Wait for all threads to complete
+      jobList.awaitAll()
 
       // Convert the floating-point Mat object back to a Mat object unit8
       floatMat.convertTo(mat, CvType.CV_8U, 255.0)
@@ -85,20 +107,19 @@ class OpenCVHelper {
       resultBitmap
     }
 
-  private fun processShadows(chunkMat: Mat, alpha: Float) {
-    // Create a mask where the pixel intensity is within the shadow range (35 to 85)
-    val lowerThreshold = 35.0
-    val upperThreshold = 85.0
-    val mask = Mat()
-    Core.inRange(chunkMat, Scalar(lowerThreshold, lowerThreshold, lowerThreshold), Scalar(upperThreshold, upperThreshold, upperThreshold), mask)
-
-    // Create a Mat of the same size filled with the alpha value
-    val alphaMat = Mat(chunkMat.size(), chunkMat.type(), Scalar(alpha.toDouble()))
-
-    // Add the alpha value to the pixels in the mask
-    Core.add(chunkMat, alphaMat, chunkMat, mask)
-
+  private fun processChunkShadows(chunkMat: Mat, alpha: Float) {
+    for (i in 0 until chunkMat.rows()) {
+      for (j in 0 until chunkMat.cols()) {
+        val pixel = chunkMat.get(i, j)
+        if (pixel.all { it > 0 && it <= 85 }) {
+          val newPixel = pixel.map { it * alpha }.toDoubleArray()
+          chunkMat.put(i, j, *newPixel)
+        }
+      }
+    }
   }
+
+
 
   /* Change the midtones of an image using OpenCV. */
 
@@ -115,14 +136,14 @@ class OpenCVHelper {
 
       // Determine the number of threads to use for parallel processing
       val numThreads = Runtime.getRuntime().availableProcessors()
-      val rowsPerThread = bitmap.height / numThreads
+      val rowsPerThread = floatMat.rows() / numThreads
       val jobList = mutableListOf<Deferred<Unit>>()
 
       // Split the image into equal-sized chunks and process each chunk concurrently
       var startY = 0
       for (i in 0 until numThreads) {
-        val endY = if (i == numThreads - 1) bitmap.height else startY + rowsPerThread
-        val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, bitmap.width))
+        val endY = if (i == numThreads - 1) floatMat.rows() else startY + rowsPerThread
+        val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, floatMat.cols()))
 
         val job = async {
           processChunkMidtones(chunkMat, midtoneShift)
@@ -150,12 +171,20 @@ class OpenCVHelper {
       resultBitmap
     }
 
-  /* Helper method to process matrix in parallel */
   private fun processChunkMidtones(chunkMat: Mat, midtoneShift: Float) {
-    Core.add(chunkMat, Scalar.all(midtoneShift.toDouble()), chunkMat)
+    for (i in 0 until chunkMat.rows()) {
+      for (j in 0 until chunkMat.cols()) {
+        val pixel = chunkMat.get(i, j)
+        if (pixel.all { it > 85 && it < 170 }) {
+          val newPixel = pixel.map { it + 30*midtoneShift }.toDoubleArray()
+          chunkMat.put(i, j, *newPixel)
+        }
+      }
+    }
   }
 
 //  Highlights
+
 
   suspend fun changeHighlights(bitmap: Bitmap, highlightShift: Float): Bitmap =
     withContext(Dispatchers.Default) {
@@ -170,14 +199,14 @@ class OpenCVHelper {
 
       // Determine the number of threads to use for parallel processing
       val numThreads = Runtime.getRuntime().availableProcessors()
-      val rowsPerThread = bitmap.height / numThreads
+      val rowsPerThread = floatMat.rows() / numThreads
       val jobList = mutableListOf<Deferred<Unit>>()
 
       // Split the image into equal-sized chunks and process each chunk concurrently
       var startY = 0
       for (i in 0 until numThreads) {
-        val endY = if (i == numThreads - 1) bitmap.height else startY + rowsPerThread
-        val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, bitmap.width))
+        val endY = if (i == numThreads - 1) floatMat.rows() else startY + rowsPerThread
+        val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, floatMat.cols()))
 
         val job = async {
           processChunkHighlights(chunkMat, highlightShift)
@@ -193,6 +222,7 @@ class OpenCVHelper {
       // Convert the floating-point Mat object back to a Mat object unit8
       floatMat.convertTo(mat, CvType.CV_8U, 255.0)
 
+
       // Convert the Mat object back to a bitmap
       val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
       Utils.matToBitmap(mat, resultBitmap)
@@ -205,10 +235,18 @@ class OpenCVHelper {
       resultBitmap
     }
 
-  /* Helper method to process matrix in parallel */
   private fun processChunkHighlights(chunkMat: Mat, highlightShift: Float) {
-    Core.add(chunkMat, Scalar.all(highlightShift.toDouble()), chunkMat)
+    for (i in 0 until chunkMat.rows()) {
+      for (j in 0 until chunkMat.cols()) {
+        val pixel = chunkMat.get(i, j)
+        if (pixel.all { it > 170 && it <= 255 }) {
+          val newPixel = pixel.map { it * highlightShift }.toDoubleArray()
+          chunkMat.put(i, j, *newPixel)
+        }
+      }
+    }
   }
+
 
 
 }

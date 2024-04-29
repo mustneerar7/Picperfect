@@ -47,17 +47,16 @@ class LightingControls(
 
 
     // Method which restores the values in the controlValues hashtable when a control is changed / selected
-    fun restoreControlValues(control: String) {
-        controlValues[control]?.let { value ->
-            when (control) {
-                "exposure" -> changeExposure(value) {},
-                "contrast" -> changeContrast(value.toFloat()) {},
-                "shadows" -> changeShadows(value.toFloat()) {},
-                "midtone" -> changeMidtones(value.toFloat()) {},
-                "highlight" -> changeHighlights(value.toFloat()) {}
-            }
-        }
-    }
+//    fun restoreControlValues(control: String) {
+//        controlValues[control]?.let { value ->
+//            when (control) {
+//                "exposure" -> changeExposure(value) {},
+//                "shadows" -> changeShadows(value.toFloat()) {},
+//                "midtone" -> changeMidtones(value.toFloat()) {},
+//                "highlight" -> changeHighlights(value.toFloat()) {}
+//            }
+//        }
+//    }
 
     /*
     * Native method to change exposure of an image.
@@ -81,10 +80,10 @@ class LightingControls(
                 // save the current control value
                 controlValues["exposure"] = beta
 
-                // if current control is exposure, donot update the original image
-                if (currentControl != LightingProperty.EXPOSURE) {
-                    currentImage = changedBitmap
-                }
+//                // if current control is exposure, donot update the original image
+//                if (currentControl != LightingProperty.EXPOSURE) {
+//                    currentImage = changedBitmap
+//                }
 
                 // Store the current control name
                 currentControl = LightingProperty.EXPOSURE
@@ -168,9 +167,9 @@ class LightingControls(
                 controlValues["shadows"] = alpha.toDouble()
 
                 // if current control is shadows, donot update the original image
-                if (currentControl != LightingProperty.SHADOW) {
-                    currentImage = changedBitmap
-                }
+//                if (currentControl != LightingProperty.SHADOW) {
+//                    currentImage = changedBitmap
+//                }
 
                 // Store the current control name
                 currentControl = LightingProperty.SHADOW
@@ -209,9 +208,9 @@ class LightingControls(
                 controlValues["midtone"] = midtoneShift.toDouble()
 
                 // if current control is midtones, donot update the original image
-                if (currentControl != LightingProperty.MIDTONES) {
-                    currentImage = changedBitmap
-                }
+//                if (currentControl != LightingProperty.MIDTONES) {
+//                    currentImage = changedBitmap
+//                }
 
                 // Store the current control name
                 currentControl = LightingProperty.MIDTONES
@@ -253,9 +252,9 @@ class LightingControls(
                 controlValues["highlight"] = highlightShift.toDouble()
 
                 // if current control is highlight, donot update the original image
-                if (currentControl != LightingProperty.HIGHLIGHT) {
-                    currentImage = changedBitmap
-                }
+//                if (currentControl != LightingProperty.HIGHLIGHT) {
+//                    currentImage = changedBitmap
+//                }
 
                 // Store the current control name
                 currentControl = LightingProperty.HIGHLIGHT
