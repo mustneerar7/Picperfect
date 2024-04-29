@@ -127,11 +127,11 @@ const Editor = ({ navigation, route }) => {
       <Slider
         style={{ width: '80%', height: 24 }}
         minimumValue={
-          mode === 'Exposure' ? 0.5 : mode === 'Mid Tones' ? -3.0 : mode === 'Shadows' ? -2.0 : mode === 'Highlights' ? 1.0 : 1.0
+          mode === 'Exposure' ? 0.5 : mode === 'Mid Tones' ? -10 : mode === 'Shadows' ? 0.0 : mode === 'Highlights' ? -1.0 : 0.0
         }
         maximumValue={
           // if mode is Exposure, set maximum value to 1.5
-          mode === 'Exposure' ? 1.5: mode === 'Mid Tones' ? 3.0 : mode === 'Shadows' ? 2.0 : mode === 'Highlights' ? 4.0 : 1.0
+          mode === 'Exposure' ? 1.5: mode === 'Mid Tones' ? +10 : mode === 'Shadows' ? 2.0 : mode === 'Highlights' ? 1.0 : 3.0
         }
         thumbTintColor="#7E84F7"
         minimumTrackTintColor="#7E84F7"

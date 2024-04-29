@@ -176,7 +176,7 @@ class OpenCVHelper {
       for (j in 0 until chunkMat.cols()) {
         val pixel = chunkMat.get(i, j)
         if (pixel.all { it > 85 && it < 170 }) {
-          val newPixel = pixel.map { it + 30*midtoneShift }.toDoubleArray()
+          val newPixel = pixel.map { it * midtoneShift }.toDoubleArray()
           chunkMat.put(i, j, *newPixel)
         }
       }

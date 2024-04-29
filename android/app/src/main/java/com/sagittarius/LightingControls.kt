@@ -64,6 +64,9 @@ class LightingControls(
     @ReactMethod
     fun changeExposure(beta: Double, callback: Callback) {
 
+                        // Store the current control name
+                currentControl = LightingProperty.EXPOSURE
+
         currentImage?.let { image ->
             Log.d("Lighting Controls", "Alpha value received: $beta")
 
@@ -81,12 +84,11 @@ class LightingControls(
                 controlValues["exposure"] = beta
 
 //                // if current control is exposure, donot update the original image
-//                if (currentControl != LightingProperty.EXPOSURE) {
-//                    currentImage = changedBitmap
-//                }
+               if (currentControl != LightingProperty.EXPOSURE) {
+                   currentImage = changedBitmap
+               }
 
-                // Store the current control name
-                currentControl = LightingProperty.EXPOSURE
+
 
                 withContext(Dispatchers.Main) {
                     callback.invoke(base64String)
@@ -150,6 +152,10 @@ class LightingControls(
 
     @ReactMethod
     fun changeShadows(alpha: Float, callback: Callback) {
+
+                        // Store the current control name
+                currentControl = LightingProperty.SHADOW
+
         currentImage?.let { image ->
             Log.d("Lighting Controls", "Alpha value received: $alpha")
 
@@ -167,12 +173,11 @@ class LightingControls(
                 controlValues["shadows"] = alpha.toDouble()
 
                 // if current control is shadows, donot update the original image
-//                if (currentControl != LightingProperty.SHADOW) {
-//                    currentImage = changedBitmap
-//                }
+               if (currentControl != LightingProperty.SHADOW) {
+                   currentImage = changedBitmap
+               }
 
-                // Store the current control name
-                currentControl = LightingProperty.SHADOW
+
 
                 withContext(Dispatchers.Main) {
                     callback.invoke(base64String)
@@ -191,6 +196,11 @@ class LightingControls(
 
     @ReactMethod
     fun changeMidtones(midtoneShift: Float, callback: Callback) {
+
+
+                        // Store the current control name
+                currentControl = LightingProperty.MIDTONES
+
         currentImage?.let { image ->
             Log.d("Lighting Controls", "Midtone shift value received: $midtoneShift")
 
@@ -208,12 +218,10 @@ class LightingControls(
                 controlValues["midtone"] = midtoneShift.toDouble()
 
                 // if current control is midtones, donot update the original image
-//                if (currentControl != LightingProperty.MIDTONES) {
-//                    currentImage = changedBitmap
-//                }
+               if (currentControl != LightingProperty.MIDTONES) {
+                   currentImage = changedBitmap
+               }
 
-                // Store the current control name
-                currentControl = LightingProperty.MIDTONES
 
                 withContext(Dispatchers.Main) {
                     callback.invoke(base64String)
@@ -235,6 +243,10 @@ class LightingControls(
 
     @ReactMethod
     fun changeHighlights(highlightShift: Float, callback: Callback) {
+
+                        // Store the current control name
+                currentControl = LightingProperty.HIGHLIGHT
+
         currentImage?.let { image ->
             Log.d("Lighting Controls", "Highlight shift value received: $highlightShift")
 
@@ -251,13 +263,12 @@ class LightingControls(
                 // Preserve highlight shift value
                 controlValues["highlight"] = highlightShift.toDouble()
 
-                // if current control is highlight, donot update the original image
-//                if (currentControl != LightingProperty.HIGHLIGHT) {
-//                    currentImage = changedBitmap
-//                }
+            //     if current control is highlight, donot update the original image
+               if (currentControl != LightingProperty.HIGHLIGHT) {
+                   currentImage = changedBitmap
+               }
 
-                // Store the current control name
-                currentControl = LightingProperty.HIGHLIGHT
+
 
                 withContext(Dispatchers.Main) {
                     callback.invoke(base64String)
