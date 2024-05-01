@@ -15,6 +15,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.Deferred
 import org.opencv.imgproc.Imgproc
 import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
+import kotlin.math.abs
 
 
 
@@ -246,6 +249,48 @@ class OpenCVHelper {
       }
     }
   }
+
+   /*
+    * A function to compress the image by eeleminating last 4 bits of each pixel value.
+    * */
+
+    suspend fun compressImage(bitmap: Bitmap): Bitmap = withContext(Dispatchers.Default) {
+        // Convert the input bitmap to a Mat object
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+
+        // Convert the Mat object to a floating-point Mat object
+        val floatMat = Mat()
+        mat.convertTo(floatMat, CvType.CV_32F, 1.0 / 255.0)
+
+        // Process the image to remove the last 4 bits of each pixel value
+        for (row in 0 until mat.rows()) {
+            for (col in 0 until mat.cols()) {
+                val pixel = mat.get(row, col)
+                val newPixel = DoubleArray(pixel.size)
+
+                for (i in pixel.indices) {
+                    newPixel[i] = (pixel[i].toInt() and 0xF0) / 255.0
+                }
+
+                mat.put(row, col, *newPixel)
+            }
+        }
+
+        // Convert the floating-point Mat object back to a Mat object unit8
+        floatMat.convertTo(mat, CvType.CV_8U, 255.0)
+
+        // Convert the Mat object back to a bitmap
+        val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(mat, resultBitmap)
+
+        // Release the Mats to free up memory
+        mat.release()
+        floatMat.release()
+
+        Log.d("Lighting CV", "Image compressed")
+        resultBitmap
+    }
 
 
 

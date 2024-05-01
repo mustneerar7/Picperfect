@@ -7,6 +7,8 @@ import { useLightingControls } from '../../hooks/useLightingControls';
 import { styles } from '../../styles';
 import { MenuStrip } from './MenuStrip';
 
+import { Alert } from 'react-native';
+
 /**
  * Renders the Editor Screen component.
  * Allow Editing images.
@@ -23,6 +25,7 @@ const Editor = ({ navigation, route }) => {
   const [image, setImage] = useState(uri);
   const [original, setOriginal] = useState(imagePath);
   const [mode, setMode] = useState('Exposure');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Read the image from the gallery on mount
   useEffect(() => {
@@ -72,6 +75,25 @@ const Editor = ({ navigation, route }) => {
       setImage(`data:image/png;base64,${base64String}`);
     });
   };
+
+    // handle Export
+    const handleExport = () => {
+      setIsExporting(true);
+      LightingControls.compressImage(response => {
+        setIsExporting(false);
+        Alert.alert('Image Exported', 'Image has been exported successfully')
+      });
+    };
+
+    useEffect(() => {
+
+      if(isExporting){
+        Alert.alert('Exporting Image', 'Please wait while we export the image')
+      }
+  
+    }, [isExporting]);
+
+
   // Show header using useLayoutEffect
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -95,9 +117,7 @@ const Editor = ({ navigation, route }) => {
               justifyContent: 'space-evenly',
             },
           ]}
-          onPress={() => {
-            // STUB: Save the image
-          }}>
+          onPress={handleExport}>
           <IconSet name="export" size={20} color="#FFFFFF" />
           <Text style={styles.buttonText}>Export</Text>
         </TouchableOpacity>
