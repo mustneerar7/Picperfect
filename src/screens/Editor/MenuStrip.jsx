@@ -1,6 +1,13 @@
 import {ScrollView} from 'react-native';
 import {MenuButton} from './MenuButton';
 
+/**
+ * A component that renders a menu strip with various menu buttons.
+ *
+ * @component
+ * @param {function} setMode - A function to set the mode when a menu button is clicked.
+ * @returns {JSX.Element} The rendered menu strip component.
+ */
 const MenuStrip = ({setMode}) => {
   return (
     <ScrollView
@@ -19,7 +26,7 @@ const MenuStrip = ({setMode}) => {
           console.log('Exposure clicked');
           setMode('Exposure');
         }}
-        title={'Exposure'}
+        title={'Brightness'}
       />
       <MenuButton
         icon="midtones"
@@ -61,8 +68,22 @@ const MenuStrip = ({setMode}) => {
         }}
         title={'Rotate'}
       />
-      <MenuButton icon="bulb" onClick={() => { console.log('Noise remover clicked'); setMode('Noise'); }} title={'Noise Remover'} />
-      <MenuButton icon="rocket" onClick={() => { console.log('Unsharp clicked'); setMode('Unsharp'); }} title={'Unsharp'} />
+      <MenuButton
+        icon="broom"
+        onClick={() => {
+          console.log('Noise remover clicked');
+          setMode('Noise');
+        }}
+        title={'Noise'}
+      />
+      <MenuButton
+        icon="sharp"
+        onClick={() => {
+          console.log('Unsharp clicked');
+          setMode('Unsharp');
+        }}
+        title={'Sharpen'}
+      />
     </ScrollView>
   );
 };

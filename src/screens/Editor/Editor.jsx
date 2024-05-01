@@ -1,6 +1,12 @@
 import Slider from '@react-native-community/slider';
 import {useEffect, useLayoutEffect, useState} from 'react';
-import {Image, Text, TouchableOpacity, View, ScrollView} from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import {IconSet} from '../../hooks/useCustomIcons';
 import {useLightingControls} from '../../hooks/useLightingControls';
@@ -58,7 +64,6 @@ const Editor = ({navigation, route}) => {
   };
 
   // Handle Mid Tone Changes
-
   const handleMidToneChange = value => {
     // Keep the value to 2 decimal places
     value = Math.round(value * 100) / 100;
@@ -80,15 +85,15 @@ const Editor = ({navigation, route}) => {
 
   // handle Noise Removal
   const handleNoiseRemoval = value => {
- // Keep the value to 2 decimal places
- value = Math.round(value * 100) / 100;
- console.log(value);
- LightingControls.reduceNoise(value, base64String => {
-   setImage(`data:image/png;base64,${base64String}`);
- });
+    // Keep the value to 2 decimal places
+    value = Math.round(value * 100) / 100;
+    console.log(value);
+    LightingControls.reduceNoise(value, base64String => {
+      setImage(`data:image/png;base64,${base64String}`);
+    });
   };
 
-  // handle Unsharp Masking
+  // handle Unsharp asking
   const handleUnsharpMasking = value => {
     // Keep the value to 2 decimal places
     value = Math.round(value * 100) / 100;
@@ -98,7 +103,7 @@ const Editor = ({navigation, route}) => {
     });
   };
 
-  // handle Export
+  // handle xport
   const handleExport = () => {
     setIsExporting(true);
     LightingControls.compressImage(response => {
@@ -118,23 +123,19 @@ const Editor = ({navigation, route}) => {
     });
   };
 
+  // handle rotate image
   const handleRotate = angle => {
     LightingControls.rotateImage(angle, response => {
       setImage(`data:image/png;base64,${response}`);
     });
   };
 
+  // handle flip image
   const handleFlip = () => {
     LightingControls.flipImage(response => {
       setImage(`data:image/png;base64,${response}`);
     });
   };
-
-  useEffect(() => {
-    if (isExporting) {
-      Alert.alert('Exporting Image', 'Please wait while we export the image');
-    }
-  }, [isExporting]);
 
   // Show header using useLayoutEffect
   useLayoutEffect(() => {
@@ -146,26 +147,36 @@ const Editor = ({navigation, route}) => {
         backgroundColor: '#000000',
       },
       headerTintColor: '#FFFFFF',
-      headerRight: () => (
-        <TouchableOpacity
-          style={[
-            styles.button,
-            {
-              marginTop: 0,
-              width: 120,
-              backgroundColor: '#2b2b2b',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-evenly',
-            },
-          ]}
-          onPress={handleExport}>
-          <IconSet name="export" size={20} color="#FFFFFF" />
-          <Text style={styles.buttonText}>Export</Text>
-        </TouchableOpacity>
-      ),
+      headerRight: () =>
+        !isExporting && (
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                marginTop: 0,
+                width: 120,
+                backgroundColor: '#2b2b2b',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-evenly',
+              },
+            ]}
+            onPress={handleExport}>
+            <IconSet name="export" size={20} color="#FFFFFF" />
+            <Text style={styles.buttonText}>Export</Text>
+          </TouchableOpacity>
+        ),
     });
   }, [navigation]);
+
+  if (isExporting) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#7E84F7" />
+        <Text style={[styles.body, {marginTop: 16}]}>Exporting Image</Text>
+      </View>
+    );
+  }
 
   // Presentation
   return (
@@ -208,7 +219,11 @@ const Editor = ({navigation, route}) => {
                 ? 0.0
                 : mode === 'Highlights'
                 ? -1.0
-                : mode === 'Noise' ? 25.0 : mode === 'Unsharp' ? 25.0 : 15.0
+                : mode === 'Noise'
+                ? 25.0
+                : mode === 'Unsharp'
+                ? 25.0
+                : 15.0
             }
             maximumValue={
               // if mode is Exposure, set maximum value to 1.5
@@ -220,7 +235,11 @@ const Editor = ({navigation, route}) => {
                 ? 2.0
                 : mode === 'Highlights'
                 ? 1.0
-                : mode === 'Noise' ?95.0 : mode === 'Unsharp' ? 75.0 : 15.0
+                : mode === 'Noise'
+                ? 95.0
+                : mode === 'Unsharp'
+                ? 75.0
+                : 15.0
             }
             thumbTintColor="#7E84F7"
             minimumTrackTintColor="#7E84F7"
@@ -234,9 +253,9 @@ const Editor = ({navigation, route}) => {
                 ? handleShadowChange
                 : mode === 'Highlights'
                 ? handleHighlightChange
-              : mode === 'Noise'
+                : mode === 'Noise'
                 ? handleNoiseRemoval
-              : mode === 'Unsharp'
+                : mode === 'Unsharp'
                 ? handleUnsharpMasking
                 : undefined
             }
