@@ -1,13 +1,14 @@
 import Slider from '@react-native-community/slider';
 import {useEffect, useLayoutEffect, useState} from 'react';
-import {Image, Text, TouchableOpacity, View,ScrollView} from 'react-native';
+import {Image, Text, TouchableOpacity, View, ScrollView} from 'react-native';
 
-import { IconSet } from '../../hooks/useCustomIcons';
-import { useLightingControls } from '../../hooks/useLightingControls';
-import { styles } from '../../styles';
-import { MenuStrip } from './MenuStrip';
+import {IconSet} from '../../hooks/useCustomIcons';
+import {useLightingControls} from '../../hooks/useLightingControls';
+import {styles} from '../../styles';
+import {MenuStrip} from './MenuStrip';
 
-import { Alert } from 'react-native';
+import {Alert} from 'react-native';
+import {CorpControls} from './CropControls';
 
 /**
  * Renders the Editor Screen component.
@@ -16,10 +17,10 @@ import { Alert } from 'react-native';
  * @returns {JSX.Element} The rendered Home screen component.
  */
 
-const Editor = ({ navigation, route }) => {
+const Editor = ({navigation, route}) => {
   // HOOKS
-  const { uri, imagePath } = route.params;
-  const { LightingControls } = useLightingControls();
+  const {uri, imagePath} = route.params;
+  const {LightingControls} = useLightingControls();
 
   // STATES
   const [image, setImage] = useState(uri);
@@ -76,23 +77,32 @@ const Editor = ({ navigation, route }) => {
     });
   };
 
-    // handle Export
-    const handleExport = () => {
-      setIsExporting(true);
-      LightingControls.compressImage(response => {
-        setIsExporting(false);
-        Alert.alert('Image Exported', 'Image has been exported successfully')
-      });
-    };
+  // handle Export
+  const handleExport = () => {
+    setIsExporting(true);
+    LightingControls.compressImage(response => {
+      setIsExporting(false);
+      Alert.alert('Image Exported', 'Image has been exported successfully');
+    });
+  };
 
-    useEffect(() => {
+  // handle crop image
+  const handleCrop = (a) => {
 
-      if(isExporting){
-        Alert.alert('Exporting Image', 'Please wait while we export the image')
-      }
-  
-    }, [isExporting]);
+    // set x and y to map to the center of the image
+    const x = 0;
+    const y = 0;
 
+    LightingControls.cropImage(a, x, y, response => {
+      setImage(`data:image/png;base64,${response}`);
+    });
+  };
+
+  useEffect(() => {
+    if (isExporting) {
+      Alert.alert('Exporting Image', 'Please wait while we export the image');
+    }
+  }, [isExporting]);
 
   // Show header using useLayoutEffect
   useLayoutEffect(() => {
@@ -127,12 +137,12 @@ const Editor = ({ navigation, route }) => {
 
   // Presentation
   return (
-    <View style={[styles.container, { paddingLeft: 0, paddingRight: 0 }]}>
+    <View style={[styles.container, {paddingLeft: 0, paddingRight: 0}]}>
       {/* Image display */}
       {image && (
         <Image
-          source={{ uri: image }}
-          style={{ width: '90%', height: 500, padding: 8 }}
+          source={{uri: image}}
+          style={{width: '90%', height: 500, padding: 8}}
           cache="only-if-cached"
           resizeMode="contain"
           fadeDuration={0}
@@ -142,36 +152,61 @@ const Editor = ({ navigation, route }) => {
       {/* Menu strip */}
       <MenuStrip setMode={setMode} />
 
-      {/* Slider for exposure or shadows */}
-      <Text style={[styles.body, { marginTop: 24 }]}>{mode}</Text>
-      <Slider
-        style={{ width: '80%', height: 24 }}
-        minimumValue={
-          mode === 'Exposure' ? 0.5 : mode === 'Mid Tones' ? -10 : mode === 'Shadows' ? 0.0 : mode === 'Highlights' ? -1.0 : 0.0
-        }
-        maximumValue={
-          // if mode is Exposure, set maximum value to 1.5
-          mode === 'Exposure' ? 1.5: mode === 'Mid Tones' ? +10 : mode === 'Shadows' ? 2.0 : mode === 'Highlights' ? 1.0 : 3.0
-        }
-        thumbTintColor="#7E84F7"
-        minimumTrackTintColor="#7E84F7"
-        maximumTrackTintColor="#FFFFFF"
-        // onSlidingComplete={mode === 'Exposure' ? handleExposureChange : handleMidToneChange}
-        onSlidingComplete={
-          mode === 'Exposure' 
-            ? handleExposureChange 
-            : mode === 'Mid Tones' 
-              ? handleMidToneChange
-              : mode === 'Shadows' 
+      {mode === 'Crop' ? (
+        <CorpControls setCrop={handleCrop}/>
+      ) : (
+        <View
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+          }}>
+          {/* Slider for exposure or shadows */}
+          <Text style={[styles.body, {marginTop: 24}]}>{mode}</Text>
+          <Slider
+            style={{width: '80%', height: 24}}
+            minimumValue={
+              mode === 'Exposure'
+                ? 0.5
+                : mode === 'Mid Tones'
+                ? -10
+                : mode === 'Shadows'
+                ? 0.0
+                : mode === 'Highlights'
+                ? -1.0
+                : 0.0
+            }
+            maximumValue={
+              // if mode is Exposure, set maximum value to 1.5
+              mode === 'Exposure'
+                ? 1.5
+                : mode === 'Mid Tones'
+                ? +10
+                : mode === 'Shadows'
+                ? 2.0
+                : mode === 'Highlights'
+                ? 1.0
+                : 3.0
+            }
+            thumbTintColor="#7E84F7"
+            minimumTrackTintColor="#7E84F7"
+            maximumTrackTintColor="#FFFFFF"
+            onSlidingComplete={
+              mode === 'Exposure'
+                ? handleExposureChange
+                : mode === 'Mid Tones'
+                ? handleMidToneChange
+                : mode === 'Shadows'
                 ? handleShadowChange
-              : mode === 'Highlights'
-                ? handleHighlightChange  
-              : undefined
-        }
-      />
+                : mode === 'Highlights'
+                ? handleHighlightChange
+                : undefined
+            }
+          />
+        </View>
+      )}
     </View>
   );
 };
 
-export { Editor };
-
+export {Editor};

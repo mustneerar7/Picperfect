@@ -291,6 +291,37 @@ class OpenCVHelper {
         Log.d("Lighting CV", "Image compressed")
         resultBitmap
     }
+    fun cropImage(desiredAspectRatio: Float, x: Int, y: Int, width: Int, height: Int, bitmap: Bitmap): Bitmap {
+        val originalAspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+        val croppedWidth: Int
+        val croppedHeight: Int
+        val xOffset: Int
+        val yOffset: Int
+
+        if (originalAspectRatio > desiredAspectRatio) {
+            // Original image is wider, adjust height
+            croppedWidth = bitmap.height * desiredAspectRatio.toInt()
+            croppedHeight = bitmap.height
+            xOffset = x + (width - croppedWidth) / 2
+            yOffset = y
+        } else {
+            // Original image is taller, adjust width
+            croppedWidth = bitmap.width
+            croppedHeight = (bitmap.width / desiredAspectRatio).toInt()
+            xOffset = x
+            yOffset = y + (height - croppedHeight) / 2
+        }
+
+//        if (xOffset < 0 || yOffset < 0 || xOffset + croppedWidth > bitmap.width || yOffset + croppedHeight > bitmap.height) {
+//            // Out of bounds, return null or handle appropriately
+//            return null
+//        }
+
+        val croppedBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, croppedWidth, croppedHeight)
+        return croppedBitmap
+    }
+
+
 
 
 

@@ -24,6 +24,7 @@ const glyphMap = {
   'highlights': '',
   'shadows': '',
   'midtones': '',
+  'crop':'',
 };
 
 const IconSet = createIconSet(glyphMap, 'FluentSystemIcons-Regular');
