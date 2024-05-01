@@ -9,6 +9,7 @@ import {MenuStrip} from './MenuStrip';
 
 import {Alert} from 'react-native';
 import {CorpControls} from './CropControls';
+import {RotateControls} from './RotateControls';
 
 /**
  * Renders the Editor Screen component.
@@ -87,13 +88,24 @@ const Editor = ({navigation, route}) => {
   };
 
   // handle crop image
-  const handleCrop = (a) => {
-
+  const handleCrop = a => {
     // set x and y to map to the center of the image
     const x = 0;
     const y = 0;
 
     LightingControls.cropImage(a, x, y, response => {
+      setImage(`data:image/png;base64,${response}`);
+    });
+  };
+
+  const handleRotate = angle => {
+    LightingControls.rotateImage(angle, response => {
+      setImage(`data:image/png;base64,${response}`);
+    });
+  };
+
+  const handleFlip = () => {
+    LightingControls.flipImage(response => {
       setImage(`data:image/png;base64,${response}`);
     });
   };
@@ -153,7 +165,9 @@ const Editor = ({navigation, route}) => {
       <MenuStrip setMode={setMode} />
 
       {mode === 'Crop' ? (
-        <CorpControls setCrop={handleCrop}/>
+        <CorpControls setCrop={handleCrop} />
+      ) : mode === 'Rotate' ? (
+        <RotateControls setRotate={handleRotate} setFlip={handleFlip} />
       ) : (
         <View
           style={{

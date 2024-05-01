@@ -40,7 +40,7 @@ class LightingControls(
     // Store current control name
     private var currentControl: LightingProperty? = null
     private enum class LightingProperty {
-        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT, MIDTONES, CROP
+        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT, MIDTONES, CROP, ROTATE, FLIP
     }
 
     // Hashtable to store the controls and their values
@@ -372,6 +372,72 @@ class LightingControls(
     private suspend fun OpenCVHelper.cropImageAsync(bitmap: Bitmap, x: Int, y: Int, width: Int, height: Int, aspectRatio: Float): Bitmap {
         return withContext(Dispatchers.Default) {
             cropImage(aspectRatio, x, y, width, height, bitmap)
+        }
+    }
+
+    @ReactMethod
+    fun rotateImage(angle: Float, callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Rotating image")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform image rotation in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val rotatedBitmap = openCVHelper.rotateImageAsync(image, angle)
+                val base64String = bitmapToBase64(rotatedBitmap)
+
+                // if current control is crop, donot update the original image
+                if (currentControl != LightingProperty.ROTATE) {
+                    currentImage = rotatedBitmap
+                }
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    private suspend fun OpenCVHelper.rotateImageAsync(bitmap: Bitmap, angle: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            rotateImage(bitmap, angle)
+        }
+    }
+
+    @ReactMethod
+    fun flipImage(callback: Callback) {
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Flipping image")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform image flipping in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val flippedBitmap = openCVHelper.flipImageAsync(image)
+                val base64String = bitmapToBase64(flippedBitmap)
+
+                // if current control is crop, donot update the original image
+                if (currentControl != LightingProperty.FLIP) {
+                    currentImage = flippedBitmap
+                }
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    private suspend fun OpenCVHelper.flipImageAsync(bitmap: Bitmap): Bitmap {
+        return withContext(Dispatchers.Default) {
+            flipImage(bitmap)
         }
     }
 

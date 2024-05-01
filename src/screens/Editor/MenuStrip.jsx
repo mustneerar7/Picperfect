@@ -53,6 +53,14 @@ const MenuStrip = ({setMode}) => {
         }}
         title={'Crop'}
       />
+      <MenuButton
+        icon="rotate"
+        onClick={() => {
+          console.log('Rotate clicked');
+          setMode('Rotate');
+        }}
+        title={'Rotate'}
+      />
     </ScrollView>
   );
 };
