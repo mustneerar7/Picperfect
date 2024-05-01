@@ -24,6 +24,11 @@ const glyphMap = {
   'highlights': '',
   'shadows': '',
   'midtones': '',
+  'crop':'',
+  'rotate':'',
+  'clockwise': '',
+  'counterclockwise': '',
+  'flip': ''
 };
 
 const IconSet = createIconSet(glyphMap, 'FluentSystemIcons-Regular');
