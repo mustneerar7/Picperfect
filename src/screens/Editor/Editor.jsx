@@ -76,6 +76,26 @@ const Editor = ({ navigation, route }) => {
     });
   };
 
+  // handle Noise Removal
+  const handleNoiseRemoval = value => {
+ // Keep the value to 2 decimal places
+ value = Math.round(value * 100) / 100;
+ console.log(value);
+ LightingControls.reduceNoise(value, base64String => {
+   setImage(`data:image/png;base64,${base64String}`);
+ });
+  };
+
+  // handle Unsharp Masking
+  const handleUnsharpMasking = value => {
+    // Keep the value to 2 decimal places
+    value = Math.round(value * 100) / 100;
+    console.log(value);
+    LightingControls.unsharpMask(value, base64String => {
+      setImage(`data:image/png;base64,${base64String}`);
+    });
+  };
+
     // handle Export
     const handleExport = () => {
       setIsExporting(true);
@@ -147,11 +167,11 @@ const Editor = ({ navigation, route }) => {
       <Slider
         style={{ width: '80%', height: 24 }}
         minimumValue={
-          mode === 'Exposure' ? 0.5 : mode === 'Mid Tones' ? -10 : mode === 'Shadows' ? 0.0 : mode === 'Highlights' ? -1.0 : 0.0
+          mode === 'Exposure' ? 0.5 : mode === 'Mid Tones' ? -10 : mode === 'Shadows' ? 0.0 : mode === 'Highlights' ? -1.0 : mode === 'Noise' ? 25.0 : mode === 'Unsharp' ? 25.0 : 15.0
         }
         maximumValue={
           // if mode is Exposure, set maximum value to 1.5
-          mode === 'Exposure' ? 1.5: mode === 'Mid Tones' ? +10 : mode === 'Shadows' ? 2.0 : mode === 'Highlights' ? 1.0 : 3.0
+          mode === 'Exposure' ? 1.5: mode === 'Mid Tones' ? +10 : mode === 'Shadows' ? 2.0 : mode === 'Highlights' ? 1.0 : mode === 'Noise' ?95.0 : mode === 'Unsharp' ? 75.0 : 15.0
         }
         thumbTintColor="#7E84F7"
         minimumTrackTintColor="#7E84F7"
@@ -166,6 +186,10 @@ const Editor = ({ navigation, route }) => {
                 ? handleShadowChange
               : mode === 'Highlights'
                 ? handleHighlightChange  
+              : mode === 'Noise'
+                ? handleNoiseRemoval
+              : mode === 'Unsharp'
+                ? handleUnsharpMasking
               : undefined
         }
       />

@@ -17,6 +17,8 @@ const MenuStrip = ({ setMode }) => {
       <MenuButton icon="midtones" onClick={() => { console.log('Mid Tones clicked'); setMode('Mid Tones'); }} title={'Mid Tones'} />
       <MenuButton icon="shadows" onClick={() => { console.log('Shadows clicked'); setMode('Shadows'); }} title={'Shadows'} />
       <MenuButton icon="highlights" onClick={() => { console.log('Highlights clicked'); setMode('Highlights'); }} title={'Highlights'} />
+      <MenuButton icon="bulb" onClick={() => { console.log('Noise remover clicked'); setMode('Noise'); }} title={'Noise Remover'} />
+      <MenuButton icon="rocket" onClick={() => { console.log('Unsharp clicked'); setMode('Unsharp'); }} title={'Unsharp'} />
     </ScrollView>
   );
 };
