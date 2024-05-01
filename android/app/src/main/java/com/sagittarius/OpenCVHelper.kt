@@ -292,6 +292,122 @@ class OpenCVHelper {
         resultBitmap
     }
 
+    // method to remove Noise
+    suspend fun reduceNoise(bitmap: Bitmap, noiseReductionFactor: Float): Bitmap = withContext(Dispatchers.Default) {
+        // Convert the input bitmap to a Mat object
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+
+        // Convert the Mat object to a floating-point Mat object
+        val floatMat = Mat()
+        mat.convertTo(floatMat, CvType.CV_32F, 1.0 / 255.0)
+
+        // Determine the number of threads to use for parallel processing
+        val numThreads = Runtime.getRuntime().availableProcessors()
+        val rowsPerThread = floatMat.rows() / numThreads
+        val jobList = mutableListOf<Deferred<Unit>>()
+
+        // Split the image into equal-sized chunks and process each chunk concurrently
+        var startY = 0
+        for (i in 0 until numThreads) {
+            val endY = if (i == numThreads - 1) floatMat.rows() else startY + rowsPerThread
+            val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, floatMat.cols()))
+
+            val job = async {
+                processChunkNoise(chunkMat, noiseReductionFactor)
+            }
+            jobList.add(job)
+
+            startY = endY
+        }
+
+        // Wait for all threads to complete
+        jobList.awaitAll()
+
+        // Convert the floating-point Mat object back to a Mat object unit8
+        floatMat.convertTo(mat, CvType.CV_8U, 255.0)
+
+        // Convert the Mat object back to a bitmap
+        val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(mat, resultBitmap)
+
+        // Release the Mats to free up memory
+        mat.release()
+        floatMat.release()
+
+        Log.d("Lighting CV", "Noise removed")
+        resultBitmap
+    }
+
+    private fun processChunkNoise(chunkMat: Mat, noiseReductionFactor: Float) {
+        val kernelSize = Math.max(1, Math.round(noiseReductionFactor / 2) * 2 + 1)
+        Imgproc.GaussianBlur(chunkMat, chunkMat, org.opencv.core.Size(kernelSize.toDouble(), kernelSize.toDouble()), 0.0)
+
+    }
+
+//     unsharp masking
+
+    suspend fun unsharpMask(bitmap: Bitmap, blurFactor: Float): Bitmap = withContext(Dispatchers.Default) {
+        // Convert the input bitmap to a Mat object
+        val mat = Mat()
+        Utils.bitmapToMat(bitmap, mat)
+
+        // Convert the Mat object to a floating-point Mat object
+        val floatMat = Mat()
+        mat.convertTo(floatMat, CvType.CV_32F, 1.0 / 255.0)
+
+        // Determine the number of threads to use for parallel processing
+        val numThreads = Runtime.getRuntime().availableProcessors()
+        val rowsPerThread = floatMat.rows() / numThreads
+        val jobList = mutableListOf<Deferred<Unit>>()
+
+        // Split the image into equal-sized chunks and process each chunk concurrently
+        var startY = 0
+        for (i in 0 until numThreads) {
+            val endY = if (i == numThreads - 1) floatMat.rows() else startY + rowsPerThread
+            val chunkMat = Mat(floatMat, Range(startY, endY), Range(0, floatMat.cols()))
+
+            val job = async {
+                processChunkUnsharpMask(chunkMat, blurFactor)
+            }
+            jobList.add(job)
+
+            startY = endY
+        }
+
+        // Wait for all threads to complete
+        jobList.awaitAll()
+
+        // Convert the floating-point Mat object back to a Mat object unit8
+        floatMat.convertTo(mat, CvType.CV_8U, 255.0)
+
+        // Convert the Mat object back to a bitmap
+        val resultBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        Utils.matToBitmap(mat, resultBitmap)
+
+        // Release the Mats to free up memory
+        mat.release()
+        floatMat.release()
+
+        Log.d("Lighting CV", "Unsharp masking done")
+        resultBitmap
+    }
+
+    private fun processChunkUnsharpMask(chunkMat: Mat, blurFactor: Float) {
+        val kernelSize = Math.max(1, Math.round(blurFactor / 2) * 2 + 1)
+        val blurred = Mat()
+        Imgproc.GaussianBlur(chunkMat, blurred, org.opencv.core.Size(kernelSize.toDouble(), kernelSize.toDouble()), 0.0)
+        val unsharpMask = Mat()
+        Core.subtract(chunkMat, blurred, unsharpMask)
+        Core.add(chunkMat, unsharpMask, chunkMat)
+    }
+
+
+
+
+
+
+
 
 
 }

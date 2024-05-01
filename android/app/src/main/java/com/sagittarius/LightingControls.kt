@@ -40,7 +40,7 @@ class LightingControls(
     // Store current control name
     private var currentControl: LightingProperty? = null
     private enum class LightingProperty {
-        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT, MIDTONES
+        EXPOSURE, CONTRAST, SHADOW, HIGHLIGHT, MIDTONES ,NOISE,UNSHARP_MASK
     }
 
     // Hashtable to store the controls and their values
@@ -330,6 +330,96 @@ class LightingControls(
             compressImage(bitmap)
         }
     }
+
+    // Method to remove noise from image
+
+    @ReactMethod
+    fun reduceNoise(noiseReductionFactor: Float, callback: Callback) {
+        // Store the current control name
+        currentControl = LightingProperty.NOISE
+
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Noise reduction factor received: $noiseReductionFactor")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform noise reduction in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.reduceNoiseAsync(image, noiseReductionFactor)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve noise reduction factor
+                controlValues["noise"] = noiseReductionFactor.toDouble()
+
+                // if current control is noise, don't update the original image
+                if (currentControl != LightingProperty.NOISE) {
+                    currentImage = changedBitmap
+                }
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    /*
+    * Suspend method to execute reduceNoise on a different coroutine.
+    * */
+    private suspend fun OpenCVHelper.reduceNoiseAsync(bitmap: Bitmap, noiseReductionFactor: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            reduceNoise(bitmap, noiseReductionFactor)
+        }
+    }
+
+    // Unsharp masking
+
+    @ReactMethod
+    fun unsharpMask(blurFactor: Float, callback: Callback) {
+        // Store the current control name
+        currentControl = LightingProperty.UNSHARP_MASK
+
+        currentImage?.let { image ->
+            Log.d("Lighting Controls", "Blur factor received: $blurFactor")
+
+            // Initialize OpenCVHelper if not already initialized
+            if (!::openCVHelper.isInitialized) {
+                openCVHelper = OpenCVHelper()
+            }
+
+            // Perform unsharp masking in parallel using Kotlin coroutines
+            CoroutineScope(Dispatchers.Default).launch {
+                val changedBitmap = openCVHelper.unsharpMaskAsync(image, blurFactor)
+                val base64String = bitmapToBase64(changedBitmap)
+
+                // Preserve blur factor
+                controlValues["unsharp_mask"] = blurFactor.toDouble()
+
+                // if current control is unsharp_mask, don't update the original image
+                if (currentControl != LightingProperty.UNSHARP_MASK) {
+                    currentImage = changedBitmap
+                }
+
+                withContext(Dispatchers.Main) {
+                    callback.invoke(base64String)
+                }
+            }
+        } ?: Log.e("Lighting Controls", "Current image is null")
+    }
+
+    /*
+    * Suspend method to execute unsharpMask on a different coroutine.
+    * */
+    private suspend fun OpenCVHelper.unsharpMaskAsync(bitmap: Bitmap, blurFactor: Float): Bitmap {
+        return withContext(Dispatchers.Default) {
+            unsharpMask(bitmap, blurFactor)
+        }
+    }
+
+
 
 
 
